@@ -101,8 +101,6 @@ flutter test
 Run tests with coverage report:
 ```bash
 flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-open coverage/html/index.html
 ```
 
 ### Available Tests
