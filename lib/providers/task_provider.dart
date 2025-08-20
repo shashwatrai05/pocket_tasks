@@ -27,8 +27,7 @@ List<Task> applyFilters({
     list = list.where((t) => t.title.toLowerCase().contains(q));
   }
   // Stable order: newest first for better UX
-  final res = list.toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  final res = list.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   return res;
 }
 
@@ -37,8 +36,7 @@ final taskRepositoryProvider = Provider<TaskRepository>((ref) {
   return TaskRepository();
 });
 
-final taskListProvider =
-    StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
+final taskListProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
   return TaskNotifier(ref);
 });
 
@@ -70,24 +68,26 @@ class _LastAction {
   final bool? previousDone; // for toggle
 
   const _LastAction.none()
-      : type = _LastActionType.none,
-        taskSnapshot = null,
-        insertIndex = null,
-        toggledId = null,
-        previousDone = null;
+    : type = _LastActionType.none,
+      taskSnapshot = null,
+      insertIndex = null,
+      toggledId = null,
+      previousDone = null;
 
   const _LastAction.delete(this.taskSnapshot, this.insertIndex)
-      : type = _LastActionType.delete,
-        toggledId = null,
-        previousDone = null;
+    : type = _LastActionType.delete,
+      toggledId = null,
+      previousDone = null;
 
   const _LastAction.toggle(this.toggledId, this.previousDone)
-      : type = _LastActionType.toggle,
-        taskSnapshot = null,
-        insertIndex = null;
+    : type = _LastActionType.toggle,
+      taskSnapshot = null,
+      insertIndex = null;
 }
 
 class TaskNotifier extends StateNotifier<List<Task>> {
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
   final Ref ref;
   _LastAction _lastAction = const _LastAction.none();
 
@@ -100,7 +100,10 @@ class TaskNotifier extends StateNotifier<List<Task>> {
   }
 
   Future<void> _persist() async {
+    _isLoading = true;
+    // Notify UI of loading state if needed
     await ref.read(taskRepositoryProvider).save(state);
+    _isLoading = false;
   }
 
   String _generateId() =>
@@ -125,10 +128,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
     final idx = state.indexWhere((t) => t.id == id);
     if (idx == -1) return;
     final prev = state[idx];
-    state = [
-      for (final t in state)
-        t.id == id ? t.copyWith(done: !t.done) : t,
-    ];
+    state = [for (final t in state) t.id == id ? t.copyWith(done: !t.done) : t];
     _lastAction = _LastAction.toggle(id, prev.done);
     _persist();
   }
@@ -151,8 +151,7 @@ class TaskNotifier extends StateNotifier<List<Task>> {
         final id = _lastAction.toggledId!;
         final prevDone = _lastAction.previousDone!;
         state = [
-          for (final t in state)
-            t.id == id ? t.copyWith(done: prevDone) : t,
+          for (final t in state) t.id == id ? t.copyWith(done: prevDone) : t,
         ];
         break;
       case _LastActionType.delete:
